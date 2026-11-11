@@ -17,6 +17,7 @@ jobs:
   check:
     name: Lint and test
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,17 +29,17 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+        uses: ./.github/actions/linux-deps
       - run: npm ci
       - run: npm run build:frontend
       - run: cargo clippy --workspace -- -D warnings
-      - run: cargo test --workspace
+      # only the core crate has tests; testing the workspace would build Tauri a second time
+      - run: cargo test -p ariadesk-core
 
   web:
     name: Web build
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -77,6 +78,7 @@ jobs:
             os: macos-latest
             args: '--target universal-apple-darwin'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -89,9 +91,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+        uses: ./.github/actions/linux-deps
       - run: npm ci
       - run: npx tauri build ${{ matrix.args }}
       - uses: actions/upload-artifact@v4

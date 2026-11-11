@@ -18,6 +18,7 @@ jobs:
   draft:
     name: Create draft release
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     outputs:
       release_id: ${{ steps.create.outputs.release_id }}
     steps:
@@ -63,6 +64,7 @@ jobs:
             os: macos-latest
             args: '--target universal-apple-darwin'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -75,9 +77,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+        uses: ./.github/actions/linux-deps
       - run: npm ci
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -97,6 +97,7 @@ jobs:
     name: Web build
     needs: draft
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -122,6 +123,7 @@ jobs:
     name: Publish release
     needs: [draft, desktop, web]
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Add checksums and publish

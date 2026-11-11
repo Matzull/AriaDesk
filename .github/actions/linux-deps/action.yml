@@ -1,0 +1,10 @@
+name: Linux build dependencies
+description: Installs the system libraries Tauri needs on Linux, cached between runs so apt mirrors are only hit on a cache miss.
+runs:
+  using: composite
+  steps:
+    - uses: awalsh128/cache-apt-pkgs-action@v1
+      with:
+        packages: libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+        # bump to refresh the cached packages
+        version: 1.0
