@@ -4,7 +4,7 @@ const KEY = 'ariadesk.settings';
 
 const defaults = {
     rpc: { protocol: 'http', host: 'localhost', port: 6800, path: '/jsonrpc', secret: '' },
-    language: navigator.language?.toLowerCase().startsWith('es') ? 'es' : 'en',
+    language: 'en',
     theme: 'system',
     refreshInterval: 1000,
     notifications: true,
