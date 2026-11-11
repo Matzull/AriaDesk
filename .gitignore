@@ -1,0 +1,8 @@
+node_modules/
+target/
+dist/
+dist-web/
+src-tauri/gen/
+*.log
+.DS_Store
+.idea/
