@@ -1,0 +1,135 @@
+name: Release
+
+# Push a tag like v0.2.0 whose version matches Cargo.toml and package.json.
+# The release is created as a draft, filled with the installers of every platform
+# and the web build, and published only when every build succeeded.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  draft:
+    name: Create draft release
+    runs-on: ubuntu-22.04
+    outputs:
+      release_id: ${{ steps.create.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches the app version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          cargo_version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          npm_version="$(node -p "require('./package.json').version")"
+          echo "tag=$tag Cargo.toml=$cargo_version package.json=$npm_version"
+          if [ "$tag" != "$cargo_version" ] || [ "$tag" != "$npm_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the version in Cargo.toml ($cargo_version) and package.json ($npm_version)"
+            exit 1
+          fi
+      - id: create
+        name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag --generate-notes --title "AriaDesk ${GITHUB_REF_NAME#v}" $prerelease
+          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$GITHUB_REF_NAME\") | .id" | head -1)"
+          echo "release_id=$id" >> "$GITHUB_OUTPUT"
+
+  desktop:
+    name: Desktop (${{ matrix.name }})
+    needs: draft
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-22.04
+            args: ''
+          - name: linux-arm64
+            os: ubuntu-22.04-arm
+            args: ''
+          - name: windows-x64
+            os: windows-latest
+            args: ''
+          - name: macos-universal
+            os: macos-latest
+            args: '--target universal-apple-darwin'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional macOS signing and notarization; the app is unsigned when these secrets are not set.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          releaseId: ${{ needs.draft.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+  web:
+    name: Web build
+    needs: draft
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install wasm-bindgen-cli --locked --version "$(cargo pkgid -p wasm-bindgen | sed 's/.*@//')"
+      - run: npm ci
+      - run: npm run build:wasm && npm run build:web
+      - name: Upload web build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive="AriaDesk_${GITHUB_REF_NAME#v}_web.zip"
+          (cd dist-web && zip -qr "../$archive" .)
+          gh release upload "$GITHUB_REF_NAME" "$archive" --clobber
+
+  publish:
+    name: Publish release
+    needs: [draft, desktop, web]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add checksums and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir assets
+          gh release download "$GITHUB_REF_NAME" --dir assets
+          (cd assets && sha256sum -- * > SHA256SUMS)
+          gh release upload "$GITHUB_REF_NAME" assets/SHA256SUMS --clobber
+          gh release edit "$GITHUB_REF_NAME" --draft=false

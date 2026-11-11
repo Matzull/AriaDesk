@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "build:wasm": "sh scripts/build-wasm.sh",
+    "version": "node scripts/sync-version.mjs",
     "dev:ui": "vite",
     "build:frontend": "vite build",
     "build:web": "vite build --outDir ../dist-web",

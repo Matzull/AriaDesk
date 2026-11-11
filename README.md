@@ -49,6 +49,19 @@ npm run build        # build installers into target/release/bundle
 npm run build:web    # build the web version into dist-web/
 ```
 
+## Releases
+
+Pushing a version tag builds and publishes a GitHub release with the installers for Linux (deb, rpm and AppImage for x64 and arm64), Windows (msi and setup exe), macOS (universal dmg), a zip of the web build and a `SHA256SUMS` file:
+
+```sh
+npm version 0.2.0        # updates package.json, Cargo.toml and both lockfiles, commits "Release v0.2.0" and tags v0.2.0
+git push --follow-tags
+```
+
+The release workflow checks that the tag matches the versions in `Cargo.toml` and `package.json`, creates a draft, uploads every build and publishes it only when all of them succeed. Tags with a suffix such as `v0.2.0-beta.1` are marked as pre-releases. macOS builds are signed and notarized when the `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` secrets are set; otherwise they are unsigned.
+
+Every push to `main` and every pull request runs the CI workflow: clippy and tests, the web build, and the desktop builds for every platform, whose installers are kept as workflow artifacts.
+
 ## Command line
 
 ```
