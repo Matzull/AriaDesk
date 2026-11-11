@@ -19,6 +19,7 @@ pub struct Config {
     pub exec_command_on_startup: Option<String>,
     pub exec_command_arguments_on_startup: Option<String>,
     pub exec_detached_command_on_startup: bool,
+    pub auto_start_aria2: bool,
     pub last_check_updates_time: i64,
 }
 
@@ -36,6 +37,7 @@ impl Default for Config {
             exec_command_on_startup: None,
             exec_command_arguments_on_startup: None,
             exec_detached_command_on_startup: false,
+            auto_start_aria2: false,
             last_check_updates_time: 0,
         }
     }
@@ -75,6 +77,7 @@ impl Config {
             "execCommandArgumentsOnStartup": self.exec_command_arguments_on_startup,
             "execDetachedCommandOnStartup": self.exec_detached_command_on_startup,
             "defaultMagnetProtocolClient": self.default_magnet_protocol_client,
+            "autoStartAria2": self.auto_start_aria2,
         })
     }
 }

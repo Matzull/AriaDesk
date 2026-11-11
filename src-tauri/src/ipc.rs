@@ -91,6 +91,7 @@ pub fn ipc_send(app: AppHandle, channel: String, args: Vec<Value>) {
                 "execCommandOnStartup" => update_config(&app, |c| c.exec_command_on_startup = text),
                 "execCommandArgumentsOnStartup" => update_config(&app, |c| c.exec_command_arguments_on_startup = text),
                 "execDetachedCommandOnStartup" => update_config(&app, |c| c.exec_detached_command_on_startup = flag),
+                "autoStartAria2" => update_config(&app, |c| c.auto_start_aria2 = flag),
                 key => emit(&app, "log", json!([format!("[ipc] unknown config key {key}")])),
             }
         }
@@ -151,6 +152,14 @@ pub async fn ipc_invoke(app: AppHandle, channel: String, args: Vec<Value>) -> Va
                 return json!(false);
             };
             json!(app.opener().open_url(url, None::<&str>).is_ok())
+        }
+        "start-aria2" => {
+            let port = arg(&args, 0).as_u64().and_then(|p| u16::try_from(p).ok()).unwrap_or(6800);
+            let secret = arg_str(&args, 1);
+            let handle = app.clone();
+            tauri::async_runtime::spawn_blocking(move || handle.state::<AppState>().aria2.start(&handle, port, &secret))
+                .await
+                .unwrap_or_else(|e| json!({ "error": e.to_string() }))
         }
         "startup-output" => {
             if state.dev_mode.load(Ordering::Relaxed) {

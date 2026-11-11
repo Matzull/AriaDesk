@@ -1,3 +1,4 @@
+mod aria2;
 mod args;
 mod config;
 mod http;
@@ -36,6 +37,7 @@ pub struct AppState {
     pub minimal: bool,
     pub startup_output: process::OutputLog,
     pub pending: Mutex<Option<Pending>>,
+    pub aria2: aria2::Aria2,
 }
 
 impl AppState {
@@ -263,6 +265,7 @@ fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         minimal: parsed.minimal,
         startup_output: output,
         pending: Mutex::new(pending),
+        aria2: aria2::Aria2::default(),
     });
 
     create_main_window(app, initial_route)?;
@@ -305,6 +308,7 @@ pub fn run() {
         .run(|app, event| match event {
             RunEvent::Exit => {
                 let state = app.state::<AppState>();
+                state.aria2.stop();
                 let config = state.config.lock().unwrap();
                 config.save(app);
             }
