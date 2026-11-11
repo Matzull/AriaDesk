@@ -3,6 +3,20 @@ description: Installs the system libraries Tauri needs on Linux, cached between 
 runs:
   using: composite
   steps:
+    # The x64 runner images download from azure.archive.ubuntu.com first, which sometimes stops
+    # resolving and leaves apt waiting on every package. Use the main Ubuntu archive instead and
+    # make apt give up quickly on a stalled server.
+    - name: Configure apt mirror and timeouts
+      shell: bash
+      run: |
+        # arm64 runners use ports.ubuntu.com, which this list does not apply to
+        if [ -f /etc/apt/apt-mirrors.txt ] && [ "$(dpkg --print-architecture)" = amd64 ]; then
+          printf 'http://archive.ubuntu.com/ubuntu/\tpriority:1\nhttp://security.ubuntu.com/ubuntu/\tpriority:2\n' \
+            | sudo tee /etc/apt/apt-mirrors.txt
+        fi
+        printf 'Acquire::Retries "3";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' \
+          | sudo tee /etc/apt/apt.conf.d/99-ci-timeouts
+    # The install is silent; on a cache hit it takes seconds, on a miss it downloads every package.
     - uses: awalsh128/cache-apt-pkgs-action@v1
       with:
         packages: libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
