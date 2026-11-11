@@ -79,16 +79,31 @@ jobs:
         if: runner.os == 'Linux'
         uses: ./.github/actions/linux-deps
       - run: npm ci
-      - uses: tauri-apps/tauri-action@v0
+      # Optional macOS signing and notarization. Tauri tries to sign as soon as these variables
+      # exist, even when empty, so they are only exported for the secrets that are set.
+      - name: Configure macOS signing
+        if: runner.os == 'macOS'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          # Optional macOS signing and notarization; the app is unsigned when these secrets are not set.
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            value="${!name}"
+            [ -n "$value" ] || continue
+            {
+              echo "$name<<APPLE_SECRET_EOF"
+              echo "$value"
+              echo "APPLE_SECRET_EOF"
+            } >> "$GITHUB_ENV"
+          done
+          [ -n "$APPLE_CERTIFICATE" ] || echo "No signing certificate configured; the macOS app will be unsigned."
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           releaseId: ${{ needs.draft.outputs.release_id }}
           args: ${{ matrix.args }}
