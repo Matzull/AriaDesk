@@ -21,19 +21,50 @@
     "category": "Utility",
     "shortDescription": "Desktop frontend for aria2",
     "longDescription": "A desktop frontend for the aria2 download utility.",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/256x256.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/256x256.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "fileAssociations": [
-      { "ext": ["torrent"], "name": "Torrent", "description": "BitTorrent file", "mimeType": "application/x-bittorrent", "role": "Viewer" },
-      { "ext": ["meta4", "metalink"], "name": "Metalink", "description": "Metalink file", "mimeType": "application/metalink4+xml", "role": "Viewer" }
+      {
+        "ext": [
+          "torrent"
+        ],
+        "name": "Torrent",
+        "description": "BitTorrent file",
+        "mimeType": "application/x-bittorrent",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "meta4",
+          "metalink"
+        ],
+        "name": "Metalink",
+        "description": "Metalink file",
+        "mimeType": "application/metalink4+xml",
+        "role": "Viewer"
+      }
     ],
     "linux": {
-      "deb": { "depends": [] },
-      "rpm": { "depends": [] }
+      "deb": {
+        "desktopTemplate": "ariadesk.desktop"
+      },
+      "rpm": {
+        "desktopTemplate": "ariadesk.desktop"
+      }
     }
   },
   "plugins": {
     "deep-link": {
-      "desktop": { "schemes": ["magnet"] }
+      "desktop": {
+        "schemes": [
+          "magnet"
+        ]
+      }
     }
   }
 }
