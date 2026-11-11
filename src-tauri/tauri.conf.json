@@ -4,7 +4,8 @@
   "mainBinaryName": "ariadesk",
   "identifier": "io.github.ariadesk",
   "build": {
-    "beforeDevCommand": "npm run build:frontend",
+    "beforeDevCommand": "npm run dev:ui",
+    "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build:frontend",
     "frontendDist": "../dist"
   },

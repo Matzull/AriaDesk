@@ -1,0 +1,237 @@
+:root {
+    --bg: #f6f7f9;
+    --sidebar: #eef0f4;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --border: #e1e4ea;
+    --hover: #e7eaf0;
+    --selected: #e2e7ff;
+    --chip: #e9ecf2;
+    --track: #e3e6ec;
+    --text: #1b1f27;
+    --text-2: #3d4452;
+    --muted: #737c8c;
+    --accent: #4f5bd5;
+    --accent-strong: #3f4ac0;
+    --on-accent: #ffffff;
+    --down: #2f7de1;
+    --up: #c2569b;
+    --ok: #23935b;
+    --warn: #d08a12;
+    --danger: #d64545;
+    --shadow: 0 10px 30px rgb(20 25 40 / 0.14), 0 2px 6px rgb(20 25 40 / 0.06);
+    --mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    --bg: #15171c;
+    --sidebar: #101216;
+    --surface: #1b1e24;
+    --surface-raised: #22262d;
+    --border: #2b2f37;
+    --hover: #23272f;
+    --selected: #262c47;
+    --chip: #2a2e37;
+    --track: #2c313a;
+    --text: #e8eaef;
+    --text-2: #c3c8d2;
+    --muted: #8a92a2;
+    --accent: #7c86ff;
+    --accent-strong: #929bff;
+    --on-accent: #0f1222;
+    --down: #5aa2ff;
+    --up: #e27bbd;
+    --ok: #46c483;
+    --warn: #e8a93a;
+    --danger: #f06a6a;
+    --shadow: 0 12px 34px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font: 13.5px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+button,
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+button:hover:not(:disabled),
+.btn:hover {
+    background: var(--hover);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+    background: var(--accent-strong);
+}
+
+button.danger {
+    color: var(--danger);
+}
+
+button.icon {
+    padding: 6px;
+}
+
+button.ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+}
+
+button.ghost:hover:not(:disabled) {
+    color: var(--text);
+}
+
+input:not([type='checkbox']),
+select,
+textarea {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    outline: none;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: 1px;
+}
+
+input[readonly],
+textarea[readonly],
+select:disabled {
+    opacity: 0.65;
+}
+
+input[type='checkbox'] {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* toggle switch */
+input[type='checkbox'].switch {
+    appearance: none;
+    width: 36px;
+    height: 20px;
+    border-radius: 99px;
+    background: var(--track);
+    position: relative;
+    transition: background 0.15s;
+    flex: none;
+}
+
+input[type='checkbox'].switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+    transition: transform 0.15s;
+}
+
+input[type='checkbox'].switch:checked {
+    background: var(--accent);
+}
+
+input[type='checkbox'].switch:checked::after {
+    transform: translateX(16px);
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--chip);
+    color: var(--text-2);
+}
+
+.badge.active {
+    background: color-mix(in srgb, var(--down) 16%, transparent);
+    color: var(--down);
+}
+
+.badge.complete {
+    background: color-mix(in srgb, var(--ok) 16%, transparent);
+    color: var(--ok);
+}
+
+.badge.error,
+.badge.removed {
+    background: color-mix(in srgb, var(--danger) 16%, transparent);
+    color: var(--danger);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--chip);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--track);
+    background-clip: padding-box;
+}
