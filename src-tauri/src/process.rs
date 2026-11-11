@@ -1,4 +1,4 @@
-//! Runs the user configured command on startup and keeps its recent output (port of lib/process.js).
+//! Runs the user configured command on startup and keeps its recent output.
 
 use std::io::{BufRead, BufReader, Read};
 use std::process::{Command, Stdio};

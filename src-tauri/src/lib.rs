@@ -36,7 +36,6 @@ pub struct AppState {
     pub minimal: bool,
     pub startup_output: process::OutputLog,
     pub pending: Mutex<Option<Pending>>,
-    pub labels: Mutex<Value>,
 }
 
 impl AppState {
@@ -68,7 +67,7 @@ fn current_location(app: &AppHandle) -> String {
 }
 
 pub fn navigate_to(app: &AppHandle, location: &str) {
-    emit(app, "on-main-navigate-to", json!([location]));
+    emit(app, "navigate", json!([location]));
 }
 
 pub fn notify_new_task(app: &AppHandle, pending: Pending, is_async: bool) {
@@ -77,7 +76,7 @@ pub fn notify_new_task(app: &AppHandle, pending: Pending, is_async: bool) {
             let p = Path::new(&path);
             let ext = p.extension().map(|e| format!(".{}", e.to_string_lossy())).unwrap_or_default();
             let Some(kind) = ariadesk_core::supported_file_extension(&ext) else {
-                emit(app, "on-main-show-error", json!(["The selected file type is invalid!"]));
+                emit(app, "error", json!(["The selected file type is invalid!"]));
                 return;
             };
             let result = match std::fs::read(p) {
@@ -89,10 +88,10 @@ pub fn notify_new_task(app: &AppHandle, pending: Pending, is_async: bool) {
                 }),
                 Err(e) => json!({ "exception": e.to_string() }),
             };
-            emit(app, "on-main-new-task-from-file", json!([result]));
+            emit(app, "new-task-file", json!([result]));
         }
         Pending::Text(text) => {
-            emit(app, "on-main-new-task-from-text", json!([{ "text": text, "append": !is_async, "async": is_async }]));
+            emit(app, "new-task-text", json!([{ "text": text, "append": !is_async, "async": is_async }]));
         }
     }
 }
@@ -134,7 +133,7 @@ fn on_second_instance(app: &AppHandle, argv: Vec<String>) {
     let parsed = args::parse(argv);
     if parsed.development {
         app.state::<AppState>().dev_mode.store(true, Ordering::Relaxed);
-        emit(app, "on-main-change-dev-mode", json!([true]));
+        emit(app, "dev-mode", json!([true]));
     }
     // magnet links in a second instance are delivered by the deep-link plugin
     let file_or_url = parsed.file_or_url.filter(|a| !a.starts_with("magnet:"));
@@ -154,7 +153,6 @@ fn boot_script(app: &AppHandle, initial_route: Option<&str>) -> String {
             "version": app.package_info().version.to_string(),
             "buildCommit": env!("ARIADESK_BUILD_COMMIT"),
             "isDevMode": state.dev_mode.load(Ordering::Relaxed),
-            "useCustomAppTitle": false,
         },
         "nativeConfig": state.config.lock().unwrap().native_config(),
         "runtime": [
@@ -170,7 +168,7 @@ fn create_main_window(app: &AppHandle, initial_route: Option<&str>) -> tauri::Re
     let state = app.state::<AppState>();
     let config = state.config.lock().unwrap().clone();
 
-    let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("app/index.html".into()))
+    let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
         .title("AriaDesk")
         .inner_size(config.width, config.height)
         .min_inner_size(800.0, 400.0)
@@ -265,7 +263,6 @@ fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         minimal: parsed.minimal,
         startup_output: output,
         pending: Mutex::new(pending),
-        labels: Mutex::new(Value::Null),
     });
 
     create_main_window(app, initial_route)?;
@@ -290,11 +287,6 @@ fn on_menu_event(app: &AppHandle, id: &str) {
             app.exit(0);
         }
         ui::MENU_ABOUT => navigate_to(app, SETTINGS_LOCATION),
-        ui::MENU_DELETE => {
-            if let Some(w) = main_window(app) {
-                let _ = w.eval("document.execCommand('delete')");
-            }
-        }
         _ => {}
     }
 }
@@ -303,7 +295,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| on_second_instance(app, argv)))
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| setup(app.handle()))

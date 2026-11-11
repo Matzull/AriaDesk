@@ -1,4 +1,4 @@
-//! HTTP requests on behalf of the frontend, avoiding CORS restrictions (port of lib/http.js).
+//! HTTP requests on behalf of the frontend, avoiding CORS restrictions.
 
 use std::time::Duration;
 

@@ -1,15 +1,14 @@
-//! Tray icon, macOS application menu and textbox context menu (port of components/tray.js and menu.js).
+//! Tray icon and macOS application menu.
 
 use serde_json::Value;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+use tauri::{AppHandle, Manager, Runtime};
 
 pub const TRAY_ID: &str = "main";
 pub const MENU_SHOW: &str = "tray-show";
 pub const MENU_EXIT: &str = "exit";
 pub const MENU_ABOUT: &str = "app-about";
-pub const MENU_DELETE: &str = "ctx-delete";
 
 fn label<'a>(labels: &'a Value, key: &str, default: &'a str) -> &'a str {
     labels[key].as_str().filter(|s| !s.is_empty()).unwrap_or(default)
@@ -40,7 +39,7 @@ fn tray_menu<R: Runtime>(app: &AppHandle<R>, labels: &Value) -> tauri::Result<Me
     Menu::with_items(app, &[
         &MenuItem::with_id(app, MENU_SHOW, label(labels, "show", "Show AriaDesk"), true, None::<&str>)?,
         &PredefinedMenuItem::separator(app)?,
-        &MenuItem::with_id(app, MENU_EXIT, label(labels, "Exit", "Exit"), true, None::<&str>)?,
+        &MenuItem::with_id(app, MENU_EXIT, label(labels, "exit", "Exit"), true, None::<&str>)?,
     ])
 }
 
@@ -87,46 +86,27 @@ pub fn set_app_menu<R: Runtime>(app: &AppHandle<R>, labels: &Value) -> tauri::Re
         &Submenu::with_items(app, "AriaDesk", true, &[
             &MenuItem::with_id(app, MENU_ABOUT, label(labels, "about", "About AriaDesk"), true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::services(app, l("Services", "Services"))?,
+            &PredefinedMenuItem::services(app, l("services", "Services"))?,
             &PredefinedMenuItem::hide(app, l("hide", "Hide AriaDesk"))?,
-            &PredefinedMenuItem::hide_others(app, l("HideOthers", "Hide Others"))?,
-            &PredefinedMenuItem::show_all(app, l("ShowAll", "Show All"))?,
+            &PredefinedMenuItem::hide_others(app, l("hideOthers", "Hide Others"))?,
+            &PredefinedMenuItem::show_all(app, l("showAll", "Show All"))?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, MENU_EXIT, label(labels, "quit", "Quit AriaDesk"), true, Some("CmdOrCtrl+Q"))?,
         ])?,
-        &Submenu::with_items(app, label(labels, "Edit", "Edit"), true, &[
-            &PredefinedMenuItem::undo(app, l("Undo", "Undo"))?,
-            &PredefinedMenuItem::redo(app, l("Redo", "Redo"))?,
+        &Submenu::with_items(app, label(labels, "edit", "Edit"), true, &[
+            &PredefinedMenuItem::undo(app, l("undo", "Undo"))?,
+            &PredefinedMenuItem::redo(app, l("redo", "Redo"))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::cut(app, l("Cut", "Cut"))?,
-            &PredefinedMenuItem::copy(app, l("Copy", "Copy"))?,
-            &PredefinedMenuItem::paste(app, l("Paste", "Paste"))?,
-            &PredefinedMenuItem::select_all(app, l("SelectAll", "Select All"))?,
+            &PredefinedMenuItem::cut(app, l("cut", "Cut"))?,
+            &PredefinedMenuItem::copy(app, l("copy", "Copy"))?,
+            &PredefinedMenuItem::paste(app, l("paste", "Paste"))?,
+            &PredefinedMenuItem::select_all(app, l("selectAll", "Select All"))?,
         ])?,
-        &Submenu::with_items(app, label(labels, "Window", "Window"), true, &[
-            &PredefinedMenuItem::minimize(app, l("Minimize", "Minimize"))?,
-            &PredefinedMenuItem::maximize(app, l("Zoom", "Zoom"))?,
+        &Submenu::with_items(app, label(labels, "window", "Window"), true, &[
+            &PredefinedMenuItem::minimize(app, l("minimize", "Minimize"))?,
+            &PredefinedMenuItem::maximize(app, l("zoom", "Zoom"))?,
         ])?,
     ])?;
     app.set_menu(menu)?;
     Ok(())
-}
-
-pub fn popup_textbox_menu<R: Runtime>(window: &WebviewWindow<R>, labels: &Value, context: &Value) -> tauri::Result<()> {
-    let app = window.app_handle();
-    let l = |k, d| Some(label(labels, k, d));
-    let selected = context["selected"].as_bool() != Some(false);
-    let delete_enabled = selected || context["forceDeleteEmpty"].as_bool() == Some(true);
-    let menu = Menu::with_items(app, &[
-        &PredefinedMenuItem::undo(app, l("Undo", "Undo"))?,
-        &PredefinedMenuItem::redo(app, l("Redo", "Redo"))?,
-        &PredefinedMenuItem::separator(app)?,
-        &PredefinedMenuItem::cut(app, l("Cut", "Cut"))?,
-        &PredefinedMenuItem::copy(app, l("Copy", "Copy"))?,
-        &PredefinedMenuItem::paste(app, l("Paste", "Paste"))?,
-        &MenuItem::with_id(app, MENU_DELETE, label(labels, "Delete", "Delete"), delete_enabled, None::<&str>)?,
-        &PredefinedMenuItem::separator(app)?,
-        &PredefinedMenuItem::select_all(app, l("SelectAll", "Select All"))?,
-    ])?;
-    window.popup_menu(&menu)
 }
