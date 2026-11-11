@@ -1,6 +1,7 @@
 <script>
     import Icon from './Icon.svelte';
     import OptionField from './OptionField.svelte';
+    import Select from './Select.svelte';
     import { app, connect, rpc, toast } from '../lib/store.svelte.js';
     import { settings, rpcUrl } from '../lib/settings.svelte.js';
     import { globalCategories, toDisplay, toSubmit, validate } from '../lib/options.js';
@@ -127,12 +128,10 @@
             <p class="lead">{t('connectionLead')}</p>
             <div class="form">
                 <label>{t('protocol')}
-                    <select bind:value={rpcDraft.protocol}>
-                        <option value="http">HTTP</option>
-                        <option value="https">HTTPS</option>
-                        <option value="ws">WebSocket</option>
-                        <option value="wss">WebSocket (TLS)</option>
-                    </select>
+                    <Select
+                        bind:value={rpcDraft.protocol}
+                        options={[{ value: 'http', label: 'HTTP' }, { value: 'https', label: 'HTTPS' }, { value: 'ws', label: 'WebSocket' }, { value: 'wss', label: 'WebSocket (TLS)' }]}
+                    />
                 </label>
                 <label>{t('host')}<input bind:value={rpcDraft.host} spellcheck="false" /></label>
                 <label>{t('port')}<input bind:value={rpcDraft.port} inputmode="numeric" /></label>
@@ -149,22 +148,13 @@
             <h2>{t('section.interface')}</h2>
             <div class="rows">
                 <label class="row">{t('language')}
-                    <select bind:value={settings.language}>
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                    </select>
+                    <Select bind:value={settings.language} options={[{ value: 'en', label: 'English' }, { value: 'es', label: 'Español' }]} />
                 </label>
                 <label class="row">{t('theme')}
-                    <select bind:value={settings.theme}>
-                        <option value="system">{t('theme.system')}</option>
-                        <option value="light">{t('theme.light')}</option>
-                        <option value="dark">{t('theme.dark')}</option>
-                    </select>
+                    <Select bind:value={settings.theme} options={['system', 'light', 'dark'].map((v) => ({ value: v, label: t('theme.' + v) }))} />
                 </label>
                 <label class="row">{t('refreshInterval')}
-                    <select bind:value={settings.refreshInterval}>
-                        {#each [500, 1000, 2000, 3000, 5000, 10000] as ms}<option value={ms}>{ms / 1000} s</option>{/each}
-                    </select>
+                    <Select bind:value={settings.refreshInterval} options={[500, 1000, 2000, 3000, 5000, 10000].map((ms) => ({ value: ms, label: `${ms / 1000} s` }))} />
                 </label>
                 <label class="row">{t('notifications')}
                     <input
@@ -181,10 +171,11 @@
             <h2>{t('section.desktop')}</h2>
             <div class="rows">
                 <label class="row">{t('windowPosition')}
-                    <select value={native.defaultPosition || 'last-position'} onchange={(e) => setNative('defaultPosition', e.target.value)}>
-                        <option value="last-position">{t('position.last')}</option>
-                        <option value="screen-center">{t('position.center')}</option>
-                    </select>
+                    <Select
+                        value={native.defaultPosition || 'last-position'}
+                        onchange={(v) => setNative('defaultPosition', v)}
+                        options={[{ value: 'last-position', label: t('position.last') }, { value: 'screen-center', label: t('position.center') }]}
+                    />
                 </label>
                 <label class="row">{boot.os === 'macos' ? t('closeHides') : t('closeToTray')}
                     <input type="checkbox" class="switch" checked={native.minimizedToTray} onchange={(e) => setNative('minimizedToTray', e.target.checked)} />
@@ -224,9 +215,7 @@
             {:else}
                 <p class="lead">{t('aria2Lead')}</p>
                 <div class="aria2-bar">
-                    <select bind:value={category} disabled={!!filter}>
-                        {#each Object.keys(globalCategories) as c}<option value={c}>{t('category.' + c)}</option>{/each}
-                    </select>
+                    <Select bind:value={category} disabled={!!filter} options={Object.keys(globalCategories).map((c) => ({ value: c, label: t('category.' + c) }))} />
                     <input type="search" bind:value={filter} placeholder={t('searchOptions')} />
                 </div>
                 {#if globalOptions}
@@ -373,7 +362,7 @@
         padding: 12px 0;
         border-bottom: 1px solid var(--border);
     }
-    .row select {
+    .row :global(.select) {
         min-width: 180px;
     }
     .output {

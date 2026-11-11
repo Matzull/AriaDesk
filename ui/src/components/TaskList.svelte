@@ -1,6 +1,7 @@
 <script>
     import Icon from './Icon.svelte';
     import Progress from './Progress.svelte';
+    import Select from './Select.svelte';
     import { app, pause, resume, remove, retry, canRetry, command } from '../lib/store.svelte.js';
     import { settings } from '../lib/settings.svelte.js';
     import { go } from '../lib/route.svelte.js';
@@ -104,17 +105,13 @@
             <Icon name="search" size={16} />
             <input type="search" placeholder={t('search')} bind:value={query} />
         </label>
-        <label class="sort" title={t('sortBy')}>
+        <div class="sort" title={t('sortBy')}>
             <Icon name="sort" size={16} />
-            <select bind:value={settings.sort.key}>
-                {#each Object.keys(sorters) as key}
-                    <option value={key}>{t('sort.' + key)}</option>
-                {/each}
-            </select>
+            <Select ghost label={t('sortBy')} bind:value={settings.sort.key} options={Object.keys(sorters).map((key) => ({ value: key, label: t('sort.' + key) }))} />
             <button class="icon ghost" onclick={() => (settings.sort.desc = !settings.sort.desc)} title={t('reverse')}>
-                <Icon name={settings.sort.desc ? 'chevronDown' : 'chevronUp'} size={16} />
+                <Icon name={settings.sort.desc ? 'down' : 'up'} size={16} />
             </button>
-        </label>
+        </div>
     </header>
 
     <div class="toolbar">
@@ -236,8 +233,7 @@
         background: var(--surface);
         color: var(--muted);
     }
-    .search input,
-    .sort select {
+    .search input {
         border: none;
         background: transparent;
         padding: 7px 4px;
@@ -245,10 +241,6 @@
     }
     .search input {
         width: 180px;
-    }
-    .sort select {
-        appearance: none;
-        cursor: pointer;
     }
     .toolbar {
         display: flex;

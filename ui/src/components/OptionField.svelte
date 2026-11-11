@@ -1,6 +1,7 @@
 <script>
     import { def, validate } from '../lib/options.js';
     import { optionLabel, optionHelp, t } from '../lib/i18n.js';
+    import Select from './Select.svelte';
 
     let { key, value = $bindable(''), readonly = false, changed = false, history = [], compact = false, placeholder = undefined } = $props();
 
@@ -18,16 +19,9 @@
     </div>
     <div class="control">
         {#if d.type === 'boolean'}
-            <select id={listId + '-input'} bind:value disabled={locked}>
-                {#if !d.required}<option value="">{t('default')}</option>{/if}
-                <option value="true">{t('yes')}</option>
-                <option value="false">{t('no')}</option>
-            </select>
+            <Select id={listId + '-input'} bind:value disabled={locked} options={[...(d.required ? [] : [{ value: '', label: t('default') }]), { value: 'true', label: t('yes') }, { value: 'false', label: t('no') }]} />
         {:else if d.type === 'option'}
-            <select id={listId + '-input'} bind:value disabled={locked}>
-                {#if !d.required}<option value="">{t('default')}</option>{/if}
-                {#each d.options as option}<option value={option}>{option}</option>{/each}
-            </select>
+            <Select id={listId + '-input'} bind:value disabled={locked} options={[...(d.required ? [] : [{ value: '', label: t('default') }]), ...d.options]} />
         {:else if d.type === 'text'}
             <textarea id={listId + '-input'} bind:value readonly={locked} rows="3" placeholder={d.separator ? t('onePerLine') : ''}></textarea>
         {:else}
