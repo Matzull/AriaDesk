@@ -1,5 +1,5 @@
 name: Linux build dependencies
-description: Installs the system libraries Tauri needs on Linux, cached between runs so apt mirrors are only hit on a cache miss.
+description: Installs the system libraries Tauri needs on Linux.
 runs:
   using: composite
   steps:
@@ -16,9 +16,10 @@ runs:
         fi
         printf 'Acquire::Retries "3";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' \
           | sudo tee /etc/apt/apt.conf.d/99-ci-timeouts
-    # The install is silent; on a cache hit it takes seconds, on a miss it downloads every package.
-    - uses: awalsh128/cache-apt-pkgs-action@v1
-      with:
-        packages: libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-        # bump to refresh the cached packages
-        version: 1.0
+    # Recommended packages (gstreamer, pipewire...) are not needed to build and double the download.
+    - name: Install packages
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
