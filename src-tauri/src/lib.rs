@@ -4,6 +4,7 @@ mod config;
 mod http;
 mod ipc;
 mod process;
+mod theme;
 mod ui;
 mod ws;
 
@@ -268,6 +269,7 @@ fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         aria2: aria2::Aria2::default(),
     });
 
+    theme::init(app);
     create_main_window(app, initial_route)?;
     let tray = ui::init_tray(app);
     app.state::<AppState>().tray_enabled.store(tray, Ordering::Relaxed);

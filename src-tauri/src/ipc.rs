@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::atomic::Ordering;
 
 use serde_json::{json, Value};
-use tauri::{AppHandle, Manager, Theme};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_opener::OpenerExt;
@@ -51,16 +51,7 @@ pub fn ipc_send(app: AppHandle, channel: String, args: Vec<Value>) {
                 }
             }
         }
-        "set-theme" => {
-            let theme = match arg_str(&args, 0).as_str() {
-                "dark" => Some(Theme::Dark),
-                "light" => Some(Theme::Light),
-                _ => None,
-            };
-            if let Some(w) = &window {
-                let _ = w.set_theme(theme);
-            }
-        }
+        "set-theme" => crate::theme::set(&app, &arg_str(&args, 0)),
         "reload" => {
             if let Some(w) = &window {
                 let _ = w.eval("window.location.reload()");
