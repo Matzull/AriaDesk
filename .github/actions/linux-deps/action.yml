@@ -1,41 +1,24 @@
 name: Linux build dependencies
-description: Installs the system libraries Tauri needs on Linux.
+description: Installs the system libraries Tauri needs on Linux, failing fast when the Ubuntu archive is unreachable.
 runs:
   using: composite
   steps:
-    # The runners' DNS intermittently fails to resolve the ubuntu.com hosts (other domains keep
-    # working), which leaves apt timing out on every package. Resolve through public DNS servers.
-    - name: Use public DNS servers
+    # When the runner cannot resolve the Ubuntu archive, apt waits on every package for half an
+    # hour; fail in under a minute instead so the run can simply be retried later.
+    - name: Check that the Ubuntu archive resolves
       shell: bash
       run: |
-        if command -v systemctl >/dev/null && systemctl is-active --quiet systemd-resolved; then
-          sudo mkdir -p /etc/systemd/resolved.conf.d
-          # Domains=~. sends every query to these servers instead of the link's own DNS
-          printf '[Resolve]\nDNS=1.1.1.1 8.8.8.8\nDomains=~.\n' \
-            | sudo tee /etc/systemd/resolved.conf.d/ci-dns.conf
-          sudo systemctl restart systemd-resolved
-        else
-          printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' | sudo tee /etc/resolv.conf
-        fi
-        for host in archive.ubuntu.com security.ubuntu.com ports.ubuntu.com; do
-          getent hosts "$host" || echo "::warning::$host does not resolve"
+        host=archive.ubuntu.com
+        [ "$(dpkg --print-architecture)" = amd64 ] || host=ports.ubuntu.com
+        for attempt in 1 2 3; do
+          getent hosts "$host" && exit 0
+          echo "$host does not resolve (attempt $attempt of 3)"
+          sleep 10
         done
-    # x64 runners list azure.archive.ubuntu.com first; the main archive is reachable from anywhere.
-    # apt retries and gives up on a stalled server after 20 seconds instead of waiting.
-    - name: Configure apt mirror and timeouts
-      shell: bash
-      run: |
-        # arm64 runners use ports.ubuntu.com, which this list does not apply to
-        if [ -f /etc/apt/apt-mirrors.txt ] && [ "$(dpkg --print-architecture)" = amd64 ]; then
-          printf 'http://archive.ubuntu.com/ubuntu/\tpriority:1\nhttp://security.ubuntu.com/ubuntu/\tpriority:2\n' \
-            | sudo tee /etc/apt/apt-mirrors.txt
-        fi
-        printf 'Acquire::Retries "3";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' \
-          | sudo tee /etc/apt/apt.conf.d/99-ci-timeouts
-    # Recommended packages (gstreamer, pipewire...) are not needed to build and double the download.
+        echo "::error::$host does not resolve on this runner, so apt cannot install the build dependencies. Re-run the job later."
+        exit 1
     - name: Install packages
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+        sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
