@@ -107,7 +107,7 @@ pub fn parse_bittorrent_info(base64_data: &str, sep: char) -> Option<TorrentInfo
         piece_length,
         files,
         length,
-        private: info.get("private").map(|p| p.as_int().map_or(true, |i| i != 0)),
+        private: info.get("private").map(|p| p.as_int().is_none_or(|i| i != 0)),
         created: torrent.get("creation date").and_then(Node::as_int).filter(|&d| d != 0).map(|d| d * 1000),
         comment: utf8_or(&torrent, "comment").and_then(Node::as_str),
         announce,
