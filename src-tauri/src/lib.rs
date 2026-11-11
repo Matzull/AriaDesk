@@ -1,6 +1,8 @@
 mod aria2;
 mod args;
 mod config;
+#[cfg(target_os = "linux")]
+mod desktop_entry;
 mod http;
 mod ipc;
 mod process;
@@ -270,6 +272,8 @@ fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     });
 
     theme::init(app);
+    #[cfg(target_os = "linux")]
+    desktop_entry::ensure(app);
     create_main_window(app, initial_route)?;
     let tray = ui::init_tray(app);
     app.state::<AppState>().tray_enabled.store(tray, Ordering::Relaxed);
