@@ -20,7 +20,7 @@
 
 <aside>
     <div class="brand">
-        <img src="icon.png" alt="" width="26" height="26" />
+        <img src="icon.svg" alt="" width="26" height="26" />
         <span>AriaDesk</span>
     </div>
 

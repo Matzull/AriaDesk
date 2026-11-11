@@ -249,7 +249,7 @@
         {:else if section === 'about'}
             <h2>{t('section.about')}</h2>
             <div class="about">
-                <img src="icon.png" alt="" width="64" height="64" />
+                <img src="icon.svg" alt="" width="64" height="64" />
                 <div>
                     <div class="appname">AriaDesk {boot.globals.version}</div>
                     <div class="muted">{t('tagline')}{boot.globals.buildCommit ? ` · ${boot.globals.buildCommit}` : ''}</div>
