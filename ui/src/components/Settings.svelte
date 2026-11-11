@@ -192,6 +192,9 @@
                 <label class="row">{t('magnetHandler')}
                     <input type="checkbox" class="switch" checked={!!magnet?.enabled} disabled={!magnet} onchange={(e) => toggleMagnet(e.target.checked)} />
                 </label>
+                <label class="row">{t('aria2Always')}
+                    <input type="checkbox" class="switch" checked={native.autoStartAria2} onchange={(e) => setNative('autoStartAria2', e.target.checked)} />
+                </label>
             </div>
             <h3>{t('startupCommand')}</h3>
             <p class="lead">{t('startupCommandLead')}</p>

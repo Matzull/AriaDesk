@@ -11,6 +11,7 @@
     import NewTask from './components/NewTask.svelte';
     import Settings from './components/Settings.svelte';
     import Toasts from './components/Toasts.svelte';
+    import StartAria2 from './components/StartAria2.svelte';
 
     let dragging = $state(false);
     let devMode = $state(!!boot.globals.isDevMode);
@@ -119,6 +120,10 @@
 
     {#if route.parts[0] === 'new'}
         <NewTask onclose={back} />
+    {/if}
+
+    {#if app.offerStart}
+        <StartAria2 />
     {/if}
 
     {#if dragging}

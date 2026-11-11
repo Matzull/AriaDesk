@@ -2,7 +2,7 @@
 
 import { Aria2 } from './rpc.js';
 import { settings, rpcUrl } from './settings.svelte.js';
-import { isDesktop, notify, send } from './native.js';
+import { boot, isDesktop, invoke, notify, send } from './native.js';
 import { speed, taskName } from './format.js';
 import { t } from './i18n.js';
 
@@ -23,16 +23,44 @@ export const app = $state({
     stopped: [],
     history: [],
     toasts: [],
-    incoming: null // file or links sent to the new task dialog
+    incoming: null, // file or links sent to the new task dialog
+    offerStart: false // ask whether to start aria2 in the background
 });
 
 let client = null;
 let timer = null;
 let lastStatus = null;
 let refreshing = false;
+let offered = false;
+
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]'];
+
 function failed(e) {
     app.status = 'error';
     app.error = e.network ? t('noResponse', { url: rpcUrl() }) : e.message;
+    // offer to start aria2 once per session, only when nothing listens on this machine
+    if (!e.network || !isDesktop || offered || !LOCAL_HOSTS.includes(settings.rpc.host.toLowerCase())) return;
+    offered = true;
+    if (boot.nativeConfig.autoStartAria2) {
+        startAria2().then((error) => error && toast(error, 'error'));
+    } else if (!boot.nativeConfig.execCommandOnStartup) {
+        app.offerStart = true;
+    }
+}
+
+/** Starts aria2c with the configured port and secret. Returns an error message, or null once connected. */
+export async function startAria2() {
+    const result = await invoke('start-aria2', Number(settings.rpc.port), settings.rpc.secret);
+    if (result?.error) {
+        return result.error === 'not-found' ? t('aria2NotFound') : t('aria2StartFailed', { message: result.error });
+    }
+    for (let i = 0; i < 20 && app.status !== 'connected'; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        await connect();
+    }
+    if (app.status !== 'connected') return app.error;
+    toast(t('aria2Started'), 'ok');
+    return null;
 }
 
 export const rpc = (method, ...params) => {
