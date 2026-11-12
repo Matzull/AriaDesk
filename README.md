@@ -1,6 +1,43 @@
-# AriaDesk
+<p align="center">
+  <img src="src-tauri/icons/icon.svg" width="96" height="96" alt="">
+</p>
+
+<h1 align="center">AriaDesk</h1>
+
+<p align="center">
+  <a href="https://github.com/Matzull/AriaDesk/actions/workflows/ci.yml"><img src="https://github.com/Matzull/AriaDesk/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/Matzull/AriaDesk/actions/workflows/release.yml"><img src="https://github.com/Matzull/AriaDesk/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+  <a href="https://github.com/Matzull/AriaDesk/releases/latest"><img src="https://img.shields.io/github/v/release/Matzull/AriaDesk?sort=semver" alt="Latest release"></a>
+  <a href="https://github.com/Matzull/AriaDesk/releases"><img src="https://img.shields.io/github/downloads/Matzull/AriaDesk/total" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS%20%7C%20Web-informational" alt="Platforms: Linux, Windows, macOS, Web">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Matzull/AriaDesk" alt="License: AGPL-3.0"></a>
+</p>
 
 A desktop frontend for [aria2](https://aria2.github.io/) for **Windows, macOS and Linux**, built with [Tauri 2](https://tauri.app/), plus a static **web** build.
+
+![Download list in the dark theme](docs/screenshots/downloads-dark.png)
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/details-light.png" alt="Details of a torrent download with its piece map"></td>
+    <td><img src="docs/screenshots/add-download-light.png" alt="Add download dialog"></td>
+  </tr>
+</table>
+
+## Download
+
+Installers for every platform are on the [releases page](https://github.com/Matzull/AriaDesk/releases/latest):
+
+| Platform | Files |
+|---|---|
+| Linux (x64, arm64) | `.deb`, `.rpm`, `.AppImage` |
+| Windows (x64) | `.msi`, setup `.exe` |
+| macOS (Apple silicon and Intel) | universal `.dmg` |
+| Web | `.zip` of static files |
+
+AriaDesk needs [aria2](https://aria2.github.io/) installed; if it is not running, AriaDesk offers to start it. Unsigned macOS builds have to be opened the first time with right click → Open.
+
+## About
 
 AriaDesk talks to aria2 over its JSON-RPC interface. The interface is written with [Svelte 5](https://svelte.dev/) and built with Vite; on the desktop a Rust backend makes the RPC requests (so CORS does not apply) and provides the system integration. Torrent parsing lives in a shared Rust crate that runs natively on the desktop and as WebAssembly in the browser.
 
