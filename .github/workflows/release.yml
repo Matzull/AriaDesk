@@ -54,8 +54,12 @@ jobs:
             case "$TAG" in *-*) prerelease="--prerelease" ;; esac
             gh release create "$TAG" --draft --verify-tag --generate-notes --title "AriaDesk ${TAG#v}" $prerelease
           fi
-          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
-          echo "release_id=$id" >> "$GITHUB_OUTPUT"
+          ids="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")"
+          if [ "$(echo "$ids" | wc -l)" != 1 ]; then
+            echo "::error::There are several releases for $TAG (a leftover draft?). Delete all but one and run the workflow again."
+            exit 1
+          fi
+          echo "release_id=$ids" >> "$GITHUB_OUTPUT"
 
   desktop:
     name: Desktop (${{ matrix.name }})
