@@ -1,18 +1,25 @@
 name: Release
 
-# Push a tag like v0.2.0 whose version matches Cargo.toml and package.json.
-# The release is created as a draft, filled with the installers of every platform
-# and the web build, and published only when every build succeeded.
+# Push a tag like v0.2.0 whose version matches Cargo.toml and package.json, or run the
+# workflow by hand with the tag of an existing version. The release is created as a draft
+# (or an existing release for the tag is reused), filled with the installers of every
+# platform and the web build, and published only when every build succeeded.
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build and release, for example v0.1.0
+        required: true
 
 permissions:
   contents: write
 
 env:
   CARGO_TERM_COLOR: always
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   draft:
@@ -23,14 +30,16 @@ jobs:
       release_id: ${{ steps.create.outputs.release_id }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - name: Check that the tag matches the app version
         run: |
-          tag="${GITHUB_REF_NAME#v}"
+          tag="${TAG#v}"
           cargo_version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
           npm_version="$(node -p "require('./package.json').version")"
           echo "tag=$tag Cargo.toml=$cargo_version package.json=$npm_version"
           if [ "$tag" != "$cargo_version" ] || [ "$tag" != "$npm_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in Cargo.toml ($cargo_version) and package.json ($npm_version)"
+            echo "::error::Tag $TAG does not match the version in Cargo.toml ($cargo_version) and package.json ($npm_version)"
             exit 1
           fi
       - id: create
@@ -38,10 +47,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          prerelease=""
-          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" --draft --verify-tag --generate-notes --title "AriaDesk ${GITHUB_REF_NAME#v}" $prerelease
-          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$GITHUB_REF_NAME\") | .id" | head -1)"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists; its assets will be added to it."
+          else
+            prerelease=""
+            case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+            gh release create "$TAG" --draft --verify-tag --generate-notes --title "AriaDesk ${TAG#v}" $prerelease
+          fi
+          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
           echo "release_id=$id" >> "$GITHUB_OUTPUT"
 
   desktop:
@@ -67,6 +80,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -115,6 +130,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -130,9 +147,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          archive="AriaDesk_${GITHUB_REF_NAME#v}_web.zip"
+          archive="AriaDesk_${TAG#v}_web.zip"
           (cd dist-web && zip -qr "../$archive" .)
-          gh release upload "$GITHUB_REF_NAME" "$archive" --clobber
+          gh release upload "$TAG" "$archive" --clobber
 
   publish:
     name: Publish release
@@ -141,12 +158,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - name: Add checksums and publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir assets
-          gh release download "$GITHUB_REF_NAME" --dir assets
+          gh release download "$TAG" --dir assets
+          rm -f assets/SHA256SUMS
           (cd assets && sha256sum -- * > SHA256SUMS)
-          gh release upload "$GITHUB_REF_NAME" assets/SHA256SUMS --clobber
-          gh release edit "$GITHUB_REF_NAME" --draft=false
+          gh release upload "$TAG" assets/SHA256SUMS --clobber
+          gh release edit "$TAG" --draft=false

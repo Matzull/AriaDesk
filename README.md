@@ -95,7 +95,7 @@ npm version 0.2.0        # updates package.json, Cargo.toml and both lockfiles, 
 git push --follow-tags
 ```
 
-The release workflow checks that the tag matches the versions in `Cargo.toml` and `package.json`, creates a draft, uploads every build and publishes it only when all of them succeed. Tags with a suffix such as `v0.2.0-beta.1` are marked as pre-releases. macOS builds are signed and notarized when the `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` secrets are set; otherwise they are unsigned.
+The release workflow checks that the tag matches the versions in `Cargo.toml` and `package.json`, creates a draft, uploads every build and publishes it only when all of them succeed. Tags with a suffix such as `v0.2.0-beta.1` are marked as pre-releases. To build an existing tag again, run the Release workflow from the Actions tab with that tag; if a release for it already exists, its notes are kept and the files are added to it. macOS builds are signed and notarized when the `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID` secrets are set; otherwise they are unsigned.
 
 Every push to `main` and every pull request runs the CI workflow: clippy and tests, the web build, and the desktop builds for every platform, whose installers are kept as workflow artifacts.
 
