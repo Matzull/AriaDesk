@@ -22,6 +22,6 @@ pkgbase = ariadesk
 	depends = webkit2gtk-4.1
 	options = !lto
 	source = ariadesk-0.2.0.tar.gz::https://github.com/Matzull/AriaDesk/archive/refs/tags/v0.2.0.tar.gz
-	sha256sums = SKIP
+	sha256sums = faf2d6e0f5d582ef917198a7fa4e227968e83356bfbb00fb2d069bc2fdb012cd
 
 pkgname = ariadesk

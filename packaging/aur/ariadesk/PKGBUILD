@@ -1,4 +1,4 @@
-# Maintainer: Marcos <malonsohbst at gmail dot com>
+# Maintainer: Marcos <malonsoHBST@gmail.com>
 
 pkgname=ariadesk
 pkgver=0.2.0
@@ -15,7 +15,7 @@ makedepends=('cargo' 'npm')
 # makepkg's LTO flags turn the C code of aws-lc-sys into GCC bitcode that the Rust linker cannot read
 options=('!lto')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('faf2d6e0f5d582ef917198a7fa4e227968e83356bfbb00fb2d069bc2fdb012cd')
 
 _appid=io.github.Matzull.AriaDesk
 
