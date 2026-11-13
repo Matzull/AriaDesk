@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "ariadesk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cross-platform desktop (Tauri) and web frontend for aria2.",
   "license": "AGPL-3.0-only",
   "type": "module",
