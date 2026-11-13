@@ -47,19 +47,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "Release $TAG already exists; its assets will be added to it."
-          else
-            prerelease=""
-            case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-            gh release create "$TAG" --draft --verify-tag --generate-notes --title "AriaDesk ${TAG#v}" $prerelease
-          fi
-          ids="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")"
-          if [ "$(echo "$ids" | wc -l)" != 1 ]; then
+          ids="$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")"
+          count="$(printf '%s' "$ids" | grep -c . || true)"
+          if [ "$count" -gt 1 ]; then
             echo "::error::There are several releases for $TAG (a leftover draft?). Delete all but one and run the workflow again."
             exit 1
+          elif [ "$count" = 1 ]; then
+            echo "Release $TAG already exists; its assets will be added to it."
+            id="$ids"
+          else
+            # the id comes from the creation itself: a new draft takes a while to appear in the release list
+            prerelease=false
+            case "$TAG" in *-*) prerelease=true ;; esac
+            id="$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases" -f tag_name="$TAG" -f name="AriaDesk ${TAG#v}" \
+              -F draft=true -F prerelease="$prerelease" -F generate_release_notes=true --jq .id)"
           fi
-          echo "release_id=$ids" >> "$GITHUB_OUTPUT"
+          if [ -z "$id" ]; then
+            echo "::error::Could not get the id of the release for $TAG"
+            exit 1
+          fi
+          echo "release_id=$id" >> "$GITHUB_OUTPUT"
 
   desktop:
     name: Desktop (${{ matrix.name }})
