@@ -1,0 +1,44 @@
+# Maintainer: Marcos <malonsohbst at gmail dot com>
+
+pkgname=ariadesk
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='Desktop client for the aria2 download utility'
+arch=('x86_64' 'aarch64')
+url='https://github.com/Matzull/AriaDesk'
+license=('AGPL-3.0-only')
+# aria2 is run as a program and libayatana-appindicator is loaded at run time for the tray icon,
+# so namcap does not see them
+depends=('aria2' 'cairo' 'dbus' 'gdk-pixbuf2' 'glib2' 'glibc' 'gtk3' 'hicolor-icon-theme'
+         'libayatana-appindicator' 'libgcc' 'libsoup3' 'webkit2gtk-4.1')
+makedepends=('cargo' 'npm')
+# makepkg's LTO flags turn the C code of aws-lc-sys into GCC bitcode that the Rust linker cannot read
+options=('!lto')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+_appid=io.github.Matzull.AriaDesk
+
+prepare() {
+  cd "AriaDesk-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  npm ci --no-audit --no-fund
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "AriaDesk-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  # builds the frontend first (beforeBuildCommand) and embeds it in the binary
+  npx --no-install tauri build --no-bundle -- --frozen
+}
+
+package() {
+  cd "AriaDesk-$pkgver"
+  install -Dm755 target/release/ariadesk "$pkgdir/usr/bin/ariadesk"
+  install -Dm644 "packaging/linux/$_appid.desktop" -t "$pkgdir/usr/share/applications"
+  install -Dm644 "packaging/linux/$_appid.metainfo.xml" -t "$pkgdir/usr/share/metainfo"
+  install -Dm644 src-tauri/icons/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/$_appid.svg"
+  install -Dm644 src-tauri/icons/128x128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/$_appid.png"
+  install -Dm644 src-tauri/icons/128x128@2x.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/$_appid.png"
+}

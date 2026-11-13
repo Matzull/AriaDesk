@@ -1,0 +1,27 @@
+pkgbase = ariadesk
+	pkgdesc = Desktop client for the aria2 download utility
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://github.com/Matzull/AriaDesk
+	arch = x86_64
+	arch = aarch64
+	license = AGPL-3.0-only
+	makedepends = cargo
+	makedepends = npm
+	depends = aria2
+	depends = cairo
+	depends = dbus
+	depends = gdk-pixbuf2
+	depends = glib2
+	depends = glibc
+	depends = gtk3
+	depends = hicolor-icon-theme
+	depends = libayatana-appindicator
+	depends = libgcc
+	depends = libsoup3
+	depends = webkit2gtk-4.1
+	options = !lto
+	source = ariadesk-0.2.0.tar.gz::https://github.com/Matzull/AriaDesk/archive/refs/tags/v0.2.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = ariadesk
