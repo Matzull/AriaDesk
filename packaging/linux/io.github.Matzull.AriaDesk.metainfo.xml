@@ -97,6 +97,16 @@
   </categories>
 
   <releases>
+    <release version="0.2.0" date="2026-11-13">
+      <description>
+        <p>The app id is now io.github.Matzull.AriaDesk; settings and downloads of 0.1.0 are moved over on the first start.</p>
+        <ul>
+          <li>Desktop entry and AppStream metadata for Linux packages</li>
+          <li>Settings that cannot work inside a Flatpak are hidden there</li>
+          <li>Licensed under the GNU AGPL v3</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-11-11">
       <description>
         <p>First release.</p>
