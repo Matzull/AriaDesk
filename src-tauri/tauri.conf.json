@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "AriaDesk",
   "mainBinaryName": "ariadesk",
-  "identifier": "io.github.ariadesk",
+  "identifier": "io.github.Matzull.AriaDesk",
   "build": {
     "beforeDevCommand": "npm run dev:ui",
     "devUrl": "http://localhost:1420",

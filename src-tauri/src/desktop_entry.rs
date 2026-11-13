@@ -1,13 +1,16 @@
 //! Window icon on Linux. Wayland compositors take it from the .desktop file named after the
-//! window's app id (the binary name), so when AriaDesk runs without a package that installed one
-//! (development builds, AppImage, a copied binary) a user entry and the icon are written to
-//! ~/.local/share. Entries written by AriaDesk carry a marker; any other entry is left alone.
+//! window's app id, so when AriaDesk runs without a package that installed one (development
+//! builds, AppImage, a copied binary) a user entry and the icon are written to ~/.local/share.
+//! Entries written by AriaDesk carry a marker; any other entry is left alone.
 
 use std::path::{Path, PathBuf};
 
 use tauri::{AppHandle, Manager};
 
-const APP_ID: &str = "ariadesk";
+use crate::APP_ID;
+
+/// The name entries and icons had while the app id was the binary name.
+const OLD_NAME: &str = "ariadesk";
 const MARKER: &str = "X-AriaDesk-Generated=true";
 const ICON: &[u8] = include_bytes!("../icons/128x128@2x.png");
 
@@ -15,7 +18,7 @@ const ICON: &[u8] = include_bytes!("../icons/128x128@2x.png");
 fn packaged() -> bool {
     let dirs = std::env::var("XDG_DATA_DIRS").unwrap_or_else(|_| "/usr/local/share:/usr/share".into());
     std::env::split_paths(&dirs)
-        .any(|dir| ["ariadesk.desktop", "AriaDesk.desktop"].iter().any(|name| dir.join("applications").join(name).is_file()))
+        .any(|dir| [format!("{APP_ID}.desktop"), "AriaDesk.desktop".into()].iter().any(|name| dir.join("applications").join(name).is_file()))
 }
 
 /// The command that starts this AriaDesk: the AppImage itself rather than its mounted copy.
@@ -33,11 +36,26 @@ fn write_if_changed(path: &Path, content: &[u8]) -> std::io::Result<()> {
     std::fs::write(path, content)
 }
 
+/// Removes an entry and icon written by an older version under the old name.
+fn remove_old(data: &Path) {
+    let entry = data.join("applications").join(format!("{OLD_NAME}.desktop"));
+    if std::fs::read_to_string(&entry).is_ok_and(|content| content.contains(MARKER)) {
+        let _ = std::fs::remove_file(entry);
+        let _ = std::fs::remove_file(data.join("icons/hicolor/256x256/apps").join(format!("{OLD_NAME}.png")));
+    }
+}
+
 pub fn ensure(app: &AppHandle) {
+    // a Flatpak exports its own entry, and anything written here would stay inside the sandbox
+    if crate::sandboxed() {
+        return;
+    }
+    let Ok(data) = app.path().data_dir() else { return };
+    remove_old(&data);
     if packaged() {
         return;
     }
-    let (Ok(data), Some(exe)) = (app.path().data_dir(), executable()) else { return };
+    let Some(exe) = executable() else { return };
     let entry_path = data.join("applications").join(format!("{APP_ID}.desktop"));
     if std::fs::read_to_string(&entry_path).is_ok_and(|content| !content.contains(MARKER)) {
         return;

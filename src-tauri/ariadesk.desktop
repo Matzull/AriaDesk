@@ -2,7 +2,7 @@
 Categories={{categories}}
 Comment={{comment}}
 Exec={{exec}} %U
-StartupWMClass={{exec}}
+StartupWMClass=io.github.Matzull.AriaDesk
 Icon={{icon}}
 Name={{name}}
 Terminal=false

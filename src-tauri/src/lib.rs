@@ -5,6 +5,7 @@ mod config;
 mod desktop_entry;
 mod http;
 mod ipc;
+mod migrate;
 mod process;
 mod theme;
 mod ui;
@@ -21,8 +22,16 @@ use tauri_plugin_deep_link::DeepLinkExt;
 
 use config::Config;
 
+/// The application id: the Tauri identifier, the Wayland app id and the name of the desktop entry.
+pub const APP_ID: &str = "io.github.Matzull.AriaDesk";
 pub const NEW_TASK_LOCATION: &str = "/new";
 pub const SETTINGS_LOCATION: &str = "/settings/about";
+
+/// Whether AriaDesk runs inside a Flatpak sandbox, where it cannot run host commands or
+/// register itself as the magnet link handler.
+pub fn sandboxed() -> bool {
+    cfg!(target_os = "linux") && std::env::var_os("FLATPAK_ID").is_some()
+}
 
 static WEBSOCKET: LazyLock<ws::WebSocket> = LazyLock::new(ws::WebSocket::default);
 
@@ -158,6 +167,7 @@ fn boot_script(app: &AppHandle, initial_route: Option<&str>) -> String {
             "version": app.package_info().version.to_string(),
             "buildCommit": env!("ARIADESK_BUILD_COMMIT"),
             "isDevMode": state.dev_mode.load(Ordering::Relaxed),
+            "sandboxed": sandboxed(),
         },
         "nativeConfig": state.config.lock().unwrap().native_config(),
         "runtime": [
@@ -241,11 +251,12 @@ fn create_main_window(app: &AppHandle, initial_route: Option<&str>) -> tauri::Re
 }
 
 fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    migrate::run(app);
     let parsed = args::parse(std::env::args());
     let config = Config::load(app);
     let output = process::OutputLog::default();
 
-    if let Some(command) = config.exec_command_on_startup.as_deref() {
+    if let Some(command) = config.exec_command_on_startup.as_deref().filter(|_| !sandboxed()) {
         process::exec_on_startup(
             command,
             config.exec_command_arguments_on_startup.as_deref(),
@@ -253,7 +264,7 @@ fn setup(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             output.clone(),
         );
     }
-    if config.default_magnet_protocol_client {
+    if config.default_magnet_protocol_client && !sandboxed() {
         let _ = app.deep_link().register("magnet");
     }
 
@@ -301,6 +312,10 @@ fn on_menu_event(app: &AppHandle, id: &str) {
 }
 
 pub fn run() {
+    // GTK takes the Wayland app id and the X11 window class from the program name, and desktop
+    // shells use it to find the desktop entry and its icon
+    #[cfg(target_os = "linux")]
+    gtk::glib::set_prgname(Some(APP_ID));
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| on_second_instance(app, argv)))
         .plugin(tauri_plugin_deep_link::init())
