@@ -5,7 +5,7 @@
     import { app, connect, rpc, toast } from '../lib/store.svelte.js';
     import { settings, rpcUrl } from '../lib/settings.svelte.js';
     import { globalCategories, toDisplay, toSubmit, validate } from '../lib/options.js';
-    import { boot, isDesktop, invoke, send, setNativeConfig, openExternal } from '../lib/native.js';
+    import { boot, isDesktop, sandboxed, invoke, send, setNativeConfig, openExternal } from '../lib/native.js';
     import { Aria2 } from '../lib/rpc.js';
     import { optionLabel, t } from '../lib/i18n.js';
 
@@ -49,7 +49,7 @@
     const native = $state({ ...boot.nativeConfig });
     let magnet = $state(null);
     $effect(() => {
-        if (section === 'desktop' && isDesktop && !magnet) invoke('magnet-status').then((r) => (magnet = r));
+        if (section === 'desktop' && isDesktop && !sandboxed && !magnet) invoke('magnet-status').then((r) => (magnet = r));
     });
 
     function setNative(key, value) {
@@ -180,33 +180,37 @@
                 <label class="row">{boot.os === 'macos' ? t('closeHides') : t('closeToTray')}
                     <input type="checkbox" class="switch" checked={native.minimizedToTray} onchange={(e) => setNative('minimizedToTray', e.target.checked)} />
                 </label>
-                <label class="row">{t('magnetHandler')}
-                    <input type="checkbox" class="switch" checked={!!magnet?.enabled} disabled={!magnet} onchange={(e) => toggleMagnet(e.target.checked)} />
-                </label>
+                {#if !sandboxed}
+                    <label class="row">{t('magnetHandler')}
+                        <input type="checkbox" class="switch" checked={!!magnet?.enabled} disabled={!magnet} onchange={(e) => toggleMagnet(e.target.checked)} />
+                    </label>
+                {/if}
                 <label class="row">{t('aria2Always')}
                     <input type="checkbox" class="switch" checked={native.autoStartAria2} onchange={(e) => setNative('autoStartAria2', e.target.checked)} />
                 </label>
             </div>
-            <h3>{t('startupCommand')}</h3>
-            <p class="lead">{t('startupCommandLead')}</p>
-            <div class="form">
-                <label class="wide">{t('command')}
-                    <input value={native.execCommandOnStartup || ''} placeholder="aria2c" spellcheck="false" onchange={(e) => setNative('execCommandOnStartup', e.target.value)} />
-                </label>
-                <label class="wide">{t('arguments')}
-                    <input value={native.execCommandArgumentsOnStartup || ''} placeholder="--enable-rpc --rpc-listen-all=false" spellcheck="false" onchange={(e) => setNative('execCommandArgumentsOnStartup', e.target.value)} />
-                </label>
-            </div>
-            <label class="row">{t('detached')}
-                <input type="checkbox" class="switch" checked={native.execDetachedCommandOnStartup} onchange={(e) => setNative('execDetachedCommandOnStartup', e.target.checked)} />
-            </label>
-            {#if devMode}
-                <div class="buttons">
-                    <button onclick={async () => (startupOutput = await invoke('startup-output'))}>{t('showOutput')}</button>
+            {#if !sandboxed}
+                <h3>{t('startupCommand')}</h3>
+                <p class="lead">{t('startupCommandLead')}</p>
+                <div class="form">
+                    <label class="wide">{t('command')}
+                        <input value={native.execCommandOnStartup || ''} placeholder="aria2c" spellcheck="false" onchange={(e) => setNative('execCommandOnStartup', e.target.value)} />
+                    </label>
+                    <label class="wide">{t('arguments')}
+                        <input value={native.execCommandArgumentsOnStartup || ''} placeholder="--enable-rpc --rpc-listen-all=false" spellcheck="false" onchange={(e) => setNative('execCommandArgumentsOnStartup', e.target.value)} />
+                    </label>
                 </div>
-            {/if}
-            {#if startupOutput}
-                <pre class="output">{startupOutput.map((l) => `[${l.source}] ${l.content}`).join('\n') || t('noOutput')}</pre>
+                <label class="row">{t('detached')}
+                    <input type="checkbox" class="switch" checked={native.execDetachedCommandOnStartup} onchange={(e) => setNative('execDetachedCommandOnStartup', e.target.checked)} />
+                </label>
+                {#if devMode}
+                    <div class="buttons">
+                        <button onclick={async () => (startupOutput = await invoke('startup-output'))}>{t('showOutput')}</button>
+                    </div>
+                {/if}
+                {#if startupOutput}
+                    <pre class="output">{startupOutput.map((l) => `[${l.source}] ${l.content}`).join('\n') || t('noOutput')}</pre>
+                {/if}
             {/if}
         {:else if section === 'aria2'}
             <h2>{t('section.aria2')}</h2>

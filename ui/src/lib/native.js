@@ -14,6 +14,8 @@ export const boot = window.__ARIADESK_BOOT__ || {
 };
 
 export const isDesktop = !!tauri;
+// inside a Flatpak, host commands and the magnet handler registration are unavailable
+export const sandboxed = !!boot.globals.sandboxed;
 
 export function send(channel, ...args) {
     if (isDesktop) {
