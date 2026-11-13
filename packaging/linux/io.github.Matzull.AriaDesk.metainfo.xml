@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Matzull.AriaDesk</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+
+  <name>AriaDesk</name>
+  <summary>Desktop client for aria2</summary>
+  <summary xml:lang="es">Cliente de escritorio para aria2</summary>
+
+  <developer id="io.github.matzull">
+    <name>Marcos</name>
+  </developer>
+
+  <description>
+    <p>
+      AriaDesk manages the downloads of aria2, the lightweight download utility for HTTP, FTP,
+      SFTP, BitTorrent and Metalink. It connects to aria2 on this computer or on another one, and
+      can start aria2 in the background when it is not running.
+    </p>
+    <p xml:lang="es">
+      AriaDesk gestiona las descargas de aria2, la herramienta de descarga ligera para HTTP, FTP,
+      SFTP, BitTorrent y Metalink. Se conecta a aria2 en este equipo o en otro, y puede arrancar
+      aria2 en segundo plano cuando no está en marcha.
+    </p>
+    <ul>
+      <li>Filter, search, sort, pause, resume and reorder downloads</li>
+      <li xml:lang="es">Filtra, busca, ordena, pausa, reanuda y reordena las descargas</li>
+      <li>See the progress, files, peers and trackers of each download</li>
+      <li xml:lang="es">Muestra el progreso, los ficheros, los pares y los trackers de cada descarga</li>
+      <li>Add links, magnet links and torrent or Metalink files, choosing which files of a torrent to download</li>
+      <li xml:lang="es">Añade enlaces, enlaces magnet y ficheros torrent o Metalink, eligiendo qué ficheros de un torrent descargar</li>
+      <li>Change every aria2 option, grouped and explained</li>
+      <li xml:lang="es">Cambia cualquier opción de aria2, agrupadas y explicadas</li>
+      <li>Tray icon and notifications when downloads finish</li>
+      <li xml:lang="es">Icono en la bandeja y notificaciones al terminar las descargas</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.Matzull.AriaDesk.desktop</launchable>
+
+  <url type="homepage">https://github.com/Matzull/AriaDesk</url>
+  <url type="bugtracker">https://github.com/Matzull/AriaDesk/issues</url>
+  <url type="vcs-browser">https://github.com/Matzull/AriaDesk</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Download list</caption>
+      <caption xml:lang="es">Lista de descargas</caption>
+      <image>https://raw.githubusercontent.com/Matzull/AriaDesk/main/docs/screenshots/downloads-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Details of a torrent download</caption>
+      <caption xml:lang="es">Detalles de una descarga de torrent</caption>
+      <image>https://raw.githubusercontent.com/Matzull/AriaDesk/main/docs/screenshots/details-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Adding a download</caption>
+      <caption xml:lang="es">Añadir una descarga</caption>
+      <image>https://raw.githubusercontent.com/Matzull/AriaDesk/main/docs/screenshots/add-download-light.png</image>
+    </screenshot>
+  </screenshots>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#c7d2fe</color>
+    <color type="primary" scheme_preference="dark">#312e81</color>
+  </branding>
+
+  <content_rating type="oars-1.1"/>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <provides>
+    <binary>ariadesk</binary>
+    <mediatype>application/x-bittorrent</mediatype>
+    <mediatype>application/metalink4+xml</mediatype>
+    <mediatype>application/metalink+xml</mediatype>
+  </provides>
+
+  <keywords>
+    <keyword>download</keyword>
+    <keyword>aria2</keyword>
+    <keyword>torrent</keyword>
+    <keyword>magnet</keyword>
+    <keyword>metalink</keyword>
+  </keywords>
+
+  <categories>
+    <category>Network</category>
+    <category>FileTransfer</category>
+  </categories>
+
+  <releases>
+    <release version="0.1.0" date="2026-11-11">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

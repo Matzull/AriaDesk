@@ -68,6 +68,7 @@ AriaDesk talks to aria2 over its JSON-RPC interface. The interface is written wi
 | `crates/ariadesk-core/` | Shared Rust logic (bencode, torrent info) |
 | `src-tauri/` | Tauri backend (IPC channels, tray, menus, WebSocket, HTTP, startup command) |
 | `scripts/` | wasm build script |
+| `packaging/linux/` | Desktop entry and AppStream metainfo for Linux packages (app id `io.github.Matzull.AriaDesk`; the icon is `src-tauri/icons/icon.svg`) |
 
 ## Building
 

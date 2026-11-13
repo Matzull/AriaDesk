@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=AriaDesk
+GenericName=Download Manager
+GenericName[es]=Gestor de descargas
+Comment=Desktop client for aria2
+Comment[es]=Cliente de escritorio para aria2
+Exec=ariadesk %U
+Icon=io.github.Matzull.AriaDesk
+Terminal=false
+Categories=Network;FileTransfer;P2P;
+Keywords=download;aria2;torrent;bittorrent;magnet;metalink;
+Keywords[es]=descarga;aria2;torrent;bittorrent;magnet;metalink;
+MimeType=x-scheme-handler/magnet;application/x-bittorrent;application/metalink4+xml;application/metalink+xml;
+StartupNotify=true
+StartupWMClass=io.github.Matzull.AriaDesk
